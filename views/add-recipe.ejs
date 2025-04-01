@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Recipe - Healthy Foodie</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center;">
+    <div style="background-color: white; padding: 2.5rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 600px; margin: 20px;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <i class="fas fa-utensils" style="color: #28a745; font-size: 2rem; margin-bottom: 1rem;"></i>
+            <h1 style="color: #333; font-size: 2rem; margin: 0;">Add Recipe</h1>
+            <p style="color: #666; margin-top: 0.5rem;">Share your healthy recipe with the community</p>
+        </div>
+
+        <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+            <div style="background-color: #fee2e2; border: 1px solid #ef4444; color: #dc2626; padding: 1rem; border-radius: 5px; margin-bottom: 1rem;">
+                <%= errorMessage %>
+            </div>
+        <% } %>
+
+        <form action="/add-recipe" method="POST" style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <input type="hidden" name="sellerId" value="<%= typeof sellerId !== 'undefined' ? sellerId : '' %>">
+
+            
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label for="title" style="color: #333; font-weight: 500;">Recipe Title:</label>
+                <input type="text" id="title" name="title" required 
+                    style="padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; transition: border-color 0.3s; outline: none;"
+                    onFocus="this.style.borderColor='#28a745';"
+                    onBlur="this.style.borderColor='#e0e0e0';">
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label for="description" style="color: #333; font-weight: 500;">Description:</label>
+                <textarea id="description" name="description" required 
+                    style="padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; transition: border-color 0.3s; outline: none; min-height: 100px; resize: vertical;"
+                    onFocus="this.style.borderColor='#28a745';"
+                    onBlur="this.style.borderColor='#e0e0e0';"></textarea>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <label for="category" style="color: #333; font-weight: 500;">Category:</label>
+                <input type="text" id="category" name="category" required 
+                    style="padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; transition: border-color 0.3s; outline: none;"
+                    onFocus="this.style.borderColor='#28a745';"
+                    onBlur="this.style.borderColor='#e0e0e0';">
+            </div>
+
+            <div style="margin-top: 1rem;">
+                <h2 style="color: #333; font-size: 1.5rem; margin-bottom: 1rem;">Ingredients</h2>
+                <div id="ingredients-container" style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div class="ingredient" style="display: flex; gap: 0.5rem;">
+                        <input type="text" name="ingredient-name[]" placeholder="Ingredient Name" required
+                            style="flex: 1; padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem;"
+                            onFocus="this.style.borderColor='#28a745';"
+                            onBlur="this.style.borderColor='#e0e0e0';">
+                        <input type="text" name="ingredient-measurement[]" placeholder="Measurement" required
+                            style="flex: 1; padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem;"
+                            onFocus="this.style.borderColor='#28a745';"
+                            onBlur="this.style.borderColor='#e0e0e0';">
+                    </div>
+                </div>
+                <button type="button" id="add-ingredient-button"
+                    style="background-color: transparent; color: #28a745; padding: 0.5rem 1rem; border: 2px solid #28a745; border-radius: 5px; font-size: 1rem; cursor: pointer; margin-top: 1rem; transition: all 0.3s;"
+                    onMouseOver="this.style.backgroundColor='#28a745'; this.style.color='white';"
+                    onMouseOut="this.style.backgroundColor='transparent'; this.style.color='#28a745';">
+                    <i class="fas fa-plus" style="margin-right: 0.5rem;"></i>Add Ingredient
+                </button>
+            </div>
+
+            <button type="submit" 
+                style="background-color: #28a745; color: white; padding: 1rem; border: none; border-radius: 5px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.3s; margin-top: 1rem;"
+                onMouseOver="this.style.backgroundColor='#218838';"
+                onMouseOut="this.style.backgroundColor='#28a745';">
+                Add Recipe
+            </button>
+        </form>
+    </div>
+
+    <script>
+        const ingredientsContainer = document.getElementById('ingredients-container');
+        const addIngredientButton = document.getElementById('add-ingredient-button');
+
+        addIngredientButton.addEventListener('click', () => {
+            const ingredientDiv = document.createElement('div');
+            ingredientDiv.classList.add('ingredient');
+            ingredientDiv.style.display = 'flex';
+            ingredientDiv.style.gap = '0.5rem';
+            ingredientDiv.style.alignItems = 'center';
+            
+            ingredientDiv.innerHTML = `
+                <input type="text" name="ingredient-name[]" placeholder="Ingredient Name" required
+                    style="flex: 1; padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem;">
+                <input type="text" name="ingredient-measurement[]" placeholder="Measurement" required
+                    style="flex: 1; padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem;">
+                <button type="button" class="remove-ingredient-button"
+                    style="background-color: #dc3545; color: white; border: none; border-radius: 5px; padding: 0.8rem; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            ingredientsContainer.appendChild(ingredientDiv);
+
+            
+            const inputs = ingredientDiv.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', () => input.style.borderColor = '#28a745');
+                input.addEventListener('blur', () => input.style.borderColor = '#e0e0e0');
+            });
+
+            
+            ingredientDiv.querySelector('.remove-ingredient-button').addEventListener('click', () => {
+                ingredientsContainer.removeChild(ingredientDiv);
+            });
+        });
+    </script>
+</body>
+</html>

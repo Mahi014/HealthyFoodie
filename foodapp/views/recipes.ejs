@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recipes</title>
+</head>
+<body>
+  <h1>Recipes</h1>
+
+  <!-- Filter by Category -->
+  <form method="GET" action="/recipes">
+    <label for="category">Filter by Category:</label>
+    <select id="category" name="category">
+      <option value="">All</option>
+      <% categories.forEach(category => { %>
+        <option value="<%= category %>" <%= category === queryCategory ? 'selected' : '' %>>
+          <%= category %>
+        </option>
+      <% }) %>
+    </select>
+    <button type="submit">Filter</button>
+  </form>
+
+  <!-- Recipes List -->
+  <% if (recipes.length > 0) { %>
+    <ul>
+      <% recipes.forEach(recipe => { %>
+        <li>
+          <h2><%= recipe.title %></h2>
+          <p><strong>Description:</strong> <%= recipe.description %></p>
+          <p><strong>Category:</strong> <%= recipe.category %></p>
+          <h3>Ingredients:</h3>
+          <ul>
+            <% recipe.ingredients.forEach(ingredient => { %>
+              <li><%= ingredient.measurement %> of <%= ingredient.name %></li>
+            <% }) %>
+          </ul>
+          <h3>Nutrition Information:</h3>
+          <p><strong>Calories:</strong> <%= recipe.nutrition.calories %></p>
+          <p><strong>Protein:</strong> <%= recipe.nutrition.protein %> g</p>
+          <p><strong>Carbs:</strong> <%= recipe.nutrition.carbs %> g</p>
+          <p><strong>Fat:</strong> <%= recipe.nutrition.fat %> g</p>
+        </li>
+      <% }) %>
+    </ul>
+  <% } else { %>
+    <p>No recipes found for the selected criteria.</p>
+  <% } %>
+
+</body>
+</html>

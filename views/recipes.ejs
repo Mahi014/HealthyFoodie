@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recipes - Healthy Foodie</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); min-height: 100vh;">
+    <div style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+        <div style="background-color: white; padding: 2.5rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <i class="fas fa-book-open" style="color: #28a745; font-size: 2rem; margin-bottom: 1rem;"></i>
+                <h1 style="color: #333; font-size: 2.5rem; margin: 0;">Healthy Recipes</h1>
+                <p style="color: #666; margin-top: 0.5rem;">Discover delicious and nutritious meals</p>
+            </div>
+
+            
+            <form action="/recipes" method="GET" style="margin-bottom: 2rem; display: flex; gap: 1rem; justify-content: center; align-items: center;">
+                <select name="category" 
+                    style="padding: 0.8rem; border: 2px solid #e0e0e0; border-radius: 5px; font-size: 1rem; min-width: 200px; outline: none; cursor: pointer; background-color: white;"
+                    onFocus="this.style.borderColor='#28a745';"
+                    onBlur="this.style.borderColor='#e0e0e0';">
+                    <option value="">All Categories</option>
+                    <% categories.forEach(function(category) { %>
+                        <option value="<%= category %>"><%= category %></option>
+                    <% }) %>
+                </select>
+                <button type="submit" 
+                    style="background-color: #28a745; color: white; padding: 0.8rem 1.5rem; border: none; border-radius: 5px; font-size: 1rem; cursor: pointer; transition: background-color 0.3s;"
+                    onMouseOver="this.style.backgroundColor='#218838';"
+                    onMouseOut="this.style.backgroundColor='#28a745';">
+                    <i class="fas fa-filter" style="margin-right: 0.5rem;"></i>Filter
+                </button>
+            </form>
+
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2rem;">
+                <% recipes.forEach(function(recipe) { %>
+                    <div style="background-color: #f8f9fa; border-radius: 10px; padding: 1.5rem; transition: transform 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.05);"
+                        onMouseOver="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 4px 8px rgba(0,0,0,0.1)';"
+                        onMouseOut="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)';">
+                        
+                        <h3 style="color: #28a745; font-size: 1.5rem; margin: 0 0 1rem 0;"><%= recipe.title %></h3>
+                        <p style="color: #666; margin-bottom: 1rem; line-height: 1.5;"><%= recipe.description %></p>
+                        
+                        <div style="display: inline-block; background-color: #e9ecef; padding: 0.4rem 0.8rem; border-radius: 20px; margin-bottom: 1rem;">
+                            <small style="color: #495057;"><i class="fas fa-tag" style="margin-right: 0.5rem;"></i><%= recipe.category %></small>
+                        </div>
+
+                        <div style="margin-top: 1rem;">
+                            <h4 style="color: #333; font-size: 1.1rem; margin-bottom: 0.8rem;">
+                                <i class="fas fa-list" style="margin-right: 0.5rem;"></i>Ingredients:
+                            </h4>
+                            <ul style="list-style-type: none; padding: 0; margin: 0;">
+                                <% if (recipe.ingredients && recipe.ingredients.length > 0) { %>
+                                    <% recipe.ingredients.forEach(function(ingredient) { %>
+                                        <li style="color: #666; padding: 0.4rem 0; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between;">
+                                            <span><%= ingredient.name %></span>
+                                            <span style="color: #28a745; font-weight: 500;"><%= ingredient.measurement %></span>
+                                        </li>
+                                    <% }) %>
+                                <% } else { %>
+                                    <li style="color: #666; font-style: italic;">No ingredients available</li>
+                                <% } %>
+                            </ul>
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

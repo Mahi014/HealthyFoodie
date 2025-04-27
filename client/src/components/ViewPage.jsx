@@ -6,16 +6,6 @@ function ViewPage() {
   const navigate = useNavigate();
   const [recipes, setRecipes] = useState([]);
 
-   useEffect(() => {
-      fetch("http://localhost:5000/auth/status", { credentials: "include" })
-        .then(res => res.json())
-        .then(data => {
-          if (!data.authenticated) {
-            navigate("/");
-          }
-        });
-    }, [navigate]);
-
   useEffect(() => {
     const fetchRecipes = async () => {
       const res = await fetch("http://localhost:5000/recipes");

@@ -6,16 +6,6 @@ function AddRecipePage() {
   const [description, setDescription] = useState("");
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetch("http://localhost:5000/auth/status", { credentials: "include" })
-      .then(res => res.json())
-      .then(data => {
-        if (!data.authenticated || data.user.role !== "seller") {
-          navigate("/");
-        }
-      });
-  }, [navigate]);
-
   const handleAdd = async () => {
     const res = await fetch("http://localhost:5000/recipes/add", {
       method: "POST",

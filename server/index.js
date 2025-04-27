@@ -64,7 +64,6 @@ app.post("/login", async (req, res) => {
 app.get("/auth/status", (req, res) => {
   if (req.session.user) {
     res.json({ authenticated: true, user: req.session.user });
-    console.log(req.session.user);
   } else {
     res.json({ authenticated: false });
   }
@@ -79,11 +78,6 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/recipes/add", async (req, res) => {
-  const user = req.session.user;
-  if (!user || user.role !== "seller") {
-    return res.status(403).json({ message: "Only sellers can add recipes" });
-  }
-
   const { title, description } = req.body;
   try {
     const result = await pool.query(

@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route,Navigate } from "react-router-do
 import LoginPage from "./components/LoginPage";
 import SignupPage from "./components/SignupPage";
 import AddRecipePage from "./components/AddRecipePage";
-import ViewPage from "./components/ViewPage";
+import CustomerViewPage from "./components/CustomerViewPage";
+import SellerViewPage from "./components/SellerViewPage";
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const [status, setStatus] = React.useState({ loading: true });
@@ -53,9 +54,16 @@ const App=()=> {
           } 
         />
         <Route 
-          path="/view" element={
+          path="/cusview" element={
             <ProtectedRoute allowedRoles={["customer"]}>
-              <ViewPage />
+              <CustomerViewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route 
+          path="/selview" element={
+            <ProtectedRoute allowedRoles={["seller"]}>
+              <SellerViewPage />
             </ProtectedRoute>
           }
         />

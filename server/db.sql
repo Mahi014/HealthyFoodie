@@ -20,3 +20,8 @@ CREATE TABLE ingredients (
     name VARCHAR(255),
     measurement VARCHAR(255)
 );
+
+CREATE TABLE disease (
+    recipe_id INTEGER REFERENCES recipes(id),
+    disease VARCHAR(255)
+);

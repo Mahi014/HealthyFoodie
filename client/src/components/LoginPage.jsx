@@ -17,9 +17,9 @@ function LoginPage() {
     const data = await res.json();
     if (res.ok) {
       if (data.user.role === "seller") {
-        navigate("/add");
+        navigate("/selview");
       } else {
-        navigate("/view");
+        navigate("/cusview");
       }
     } else {
       alert(data.message);

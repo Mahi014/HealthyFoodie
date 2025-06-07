@@ -1,4 +1,5 @@
 import express from "express";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import cors from "cors";
 import session from "express-session";
 import cookieParser from "cookie-parser";
@@ -26,6 +27,7 @@ app.use(session({
   }
 }));
 
+// Signup
 app.post("/signup", async (req, res) => {
   const { username, password, role } = req.body;
   try {
@@ -43,6 +45,7 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+// Login
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -61,6 +64,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
+// Auth status
 app.get("/auth/status", (req, res) => {
   if (req.session.user) {
     res.json({ authenticated: true, user: req.session.user });
@@ -69,6 +73,7 @@ app.get("/auth/status", (req, res) => {
   }
 });
 
+// Logout
 app.post("/logout", (req, res) => {
   req.session.destroy((err) => {
     if (err) return res.status(500).json({ error: "Logout failed" });
@@ -77,25 +82,126 @@ app.post("/logout", (req, res) => {
   });
 });
 
+// Initialize Gemini
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// Prompt builder
+function buildPrompt(title, description, ingredients) {
+  const unitsExplanation = `
+Units:
+- g = gram
+- kg = kilogram
+- ml = milliliter
+- l = liter
+- tsp = teaspoon
+- tbsp = tablespoon
+- cup = standard measuring cup
+`;
+
+  const ingredientList = ingredients
+    .map((ing) => `${ing.name}: ${ing.measurement}`)
+    .join("\n");
+
+  return `
+You are a health AI. Analyze the following recipe and ingredients. From this list:
+
+- Heart Disease
+- Type 2 Diabetes
+- Kidney Disease
+- Obesity
+- Non-Alcoholic Fatty Liver Disease (NAFLD)
+- Healthy (if none apply)
+
+Return only the **single most relevant** disease this dish is associated with. Respond with only the disease name — no explanations, no extra text.
+
+${unitsExplanation}
+
+Recipe Name: ${title}
+Description: ${description}
+
+Ingredients:\n${ingredientList}
+`;
+}
+
+// Route: Add recipe and get 1 disease
 app.post("/recipes/add", async (req, res) => {
-  const { title, description } = req.body;
+  const { title, description, ingredients } = req.body;
+
+  if (!req.session.user) {
+    return res.status(401).json({ error: "Unauthorized. Please log in." });
+  }
+
+  const userId = req.session.user.id;
+
   try {
+    // Insert recipe
     const result = await pool.query(
       "INSERT INTO recipes (title, description, seller_id) VALUES ($1, $2, $3) RETURNING *",
-      [title, description, user.id]
+      [title, description, userId]
     );
-    res.json({ message: "Recipe added", recipe: result.rows[0] });
+    const recipe = result.rows[0];
+
+    // Insert ingredients
+    for (const ingredient of ingredients) {
+      const { name, measurement } = ingredient;
+      await pool.query(
+        "INSERT INTO ingredients (recipe_id, name, measurement) VALUES ($1, $2, $3)",
+        [recipe.id, name, measurement]
+      );
+    }
+
+    // Call Gemini
+    const prompt = buildPrompt(title, description, ingredients);
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    const resultGemini = await model.generateContent(prompt);
+    const response = resultGemini.response.text().trim();
+
+    console.log(response);
+
+    const possibleDiseases = [
+      "Heart Disease",
+      "Type 2 Diabetes",
+      "Kidney Disease",
+      "Obesity",
+      "Non-Alcoholic Fatty Liver Disease (NAFLD)",
+      "Healthy"
+    ];
+
+    const disease = possibleDiseases.find(d =>
+      response.toLowerCase().includes(d.toLowerCase())
+    );
+
+    if (disease) {
+      await pool.query(
+        "INSERT INTO disease (recipe_id, disease) VALUES ($1, $2)",
+        [recipe.id, disease]
+      );
+    }
+
+    res.json({
+      message: "Recipe, ingredients, and predicted disease saved",
+      recipe,
+      disease: disease || "Not found"
+    });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Error in /recipes/add:", err.message);
+    res.status(500).json({ error: "Server error: " + err.message });
   }
 });
 
+// Get all recipes
 app.get("/recipes", async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT recipes.id, recipes.title, recipes.description, users.username AS seller_username
+      SELECT 
+        recipes.id, 
+        recipes.title, 
+        recipes.description, 
+        users.username AS seller_username,
+        disease.disease
       FROM recipes
       JOIN users ON recipes.seller_id = users.id
+      LEFT JOIN disease ON recipes.id = disease.recipe_id
     `);
     res.json(result.rows);
   } catch (err) {
@@ -103,6 +209,43 @@ app.get("/recipes", async (req, res) => {
   }
 });
 
+
+// Get recipes by seller
+app.get("/recipes/seller", async (req, res) => {
+  try {
+    if (!req.session.user || req.session.user.role !== "seller") {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const sellerId = req.session.user.id;
+
+    const result = await pool.query(
+    `
+     SELECT 
+      recipes.id, 
+      recipes.title, 
+      recipes.description, 
+      users.username AS seller_username,
+      json_agg(json_build_object('name', ingredients.name, 'measurement', ingredients.measurement)) AS ingredients,
+      disease.disease
+     FROM recipes
+     JOIN users ON recipes.seller_id = users.id
+     LEFT JOIN ingredients ON recipes.id = ingredients.recipe_id
+     LEFT JOIN disease ON recipes.id = disease.recipe_id
+     WHERE recipes.seller_id = $1
+     GROUP BY recipes.id, users.username, disease.disease
+      `,
+      [sellerId]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+// Start server
 app.listen(5000, () => {
   console.log("Server is running on port 5000");
 });

@@ -244,8 +244,33 @@ app.get("/recipes/seller", async (req, res) => {
   }
 });
 
+// Delete recipe
+app.delete("/recipes/:id", async (req, res) => {
+  const recipeId = req.params.id;
+
+  if (!req.session.user || req.session.user.role !== "seller") {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  try {
+    // Delete from disease, ingredients, and then recipe
+    await pool.query("DELETE FROM disease WHERE recipe_id = $1", [recipeId]);
+    await pool.query("DELETE FROM ingredients WHERE recipe_id = $1", [recipeId]);
+    await pool.query("DELETE FROM recipes WHERE id = $1 AND seller_id = $2", [
+      recipeId,
+      req.session.user.id,
+    ]);
+
+    res.json({ message: "Recipe deleted successfully" });
+  } catch (err) {
+    console.error("Error deleting recipe:", err.message);
+    res.status(500).json({ error: "Failed to delete recipe" });
+  }
+});
+
 
 // Start server
 app.listen(5000, () => {
   console.log("Server is running on port 5000");
 });
+

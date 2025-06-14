@@ -44,6 +44,24 @@ function SellerViewPage() {
     setFilteredRecipes(filtered);
   }, [searchTerm, diseaseFilter, recipes]);
 
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:5000/recipes/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (res.ok) {
+        const updatedRecipes = recipes.filter((r) => r.id !== id);
+        setRecipes(updatedRecipes);
+      } else {
+        console.error("Failed to delete recipe");
+      }
+    } catch (error) {
+      console.error("Error deleting recipe:", error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-blue-600 text-white p-4 flex justify-between items-center sticky top-0 shadow">
@@ -92,7 +110,7 @@ function SellerViewPage() {
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 w-full max-w-6xl">
           {filteredRecipes.map((recipe) => (
-            <SelCard key={recipe.id} recipe={recipe} />
+            <SelCard key={recipe.id} recipe={recipe} onDelete={handleDelete} />
           ))}
         </div>
       </div>

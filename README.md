@@ -40,9 +40,6 @@ Healthy Foodie is a smart, health-aware recipe-sharing platform built using the 
 ### Screenshot 5  
 ![Screenshot 5](Images/Screenshot%20(5).png)
 
-### Screenshot 5  
-![Screenshot 5](Images/Screenshot%20(5).png)
-
 ### Screenshot 6  
 ![Screenshot 6](Images/Screenshot%20(6).png)
 

@@ -85,7 +85,7 @@ app.post("/logout", (req, res) => {
 // Initialize Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// Prompt builder
+// Prompt 
 function buildPrompt(title, description, ingredients) {
   const unitsExplanation = `
 Units:
